@@ -1,0 +1,31 @@
+name: retrouve_tout
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_screenutil: ^5.9.0  # Pour la responsivité
+  google_fonts: ^6.1.0       # Pour la typographie Poppins
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Ajout des assets pour les images de l'onboarding
+  assets:
+    - assets/logo.png
+    - assets/search_icon.png
+    - assets/community_icon.png
+    - assets/location_icon.png
+    - assets/login_icon.png
