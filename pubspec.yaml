@@ -1,31 +1,30 @@
 name: retrouve_tout
-description: "A new Flutter project."
-publish_to: 'none'
-
+description: Une application pour retrouver les objets perdus.
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=2.18.0 <3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  flutter_screenutil: ^5.9.0  # Pour la responsivité
-  google_fonts: ^6.1.0       # Pour la typographie Poppins
+  cloud_firestore: ^4.0.0
+  firebase_auth: ^4.0.0
+  google_sign_in: ^6.0.0
+  geolocator: ^9.0.0
+  firebase_storage: ^11.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
-
-  # Ajout des assets pour les images de l'onboarding
-  assets:
-    - assets/logo.png
-    - assets/search_icon.png
-    - assets/community_icon.png
-    - assets/location_icon.png
-    - assets/login_icon.png
+  fonts:
+    - family: SF Pro Display
+      fonts:
+        - asset: assets/fonts/SF-Pro-Display-Regular.otf
+          weight: 400
+        - asset: assets/fonts/SF-Pro-Display-Bold.otf
+          weight: 700
