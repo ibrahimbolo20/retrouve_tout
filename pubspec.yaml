@@ -8,23 +8,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^4.0.0
-  firebase_auth: ^4.0.0
-  google_sign_in: ^6.0.0
-  geolocator: ^9.0.0
-  firebase_storage: ^11.0.0
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.0
+  firebase_storage: ^12.4.0
+  google_sign_in: ^7.1.0
+  geolocator: ^14.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
-  uses-material-design: true
+  assets:
+    - assets/fonts/NotoColorEmoji-Regular.ttf
+
   fonts:
-    - family: SF Pro Display
+    - family: NotoColorEmoji
       fonts:
-        - asset: assets/fonts/SF-Pro-Display-Regular.otf
-          weight: 400
-        - asset: assets/fonts/SF-Pro-Display-Bold.otf
-          weight: 700
+        - asset: assets/fonts/NotoColorEmoji-Regular.ttf

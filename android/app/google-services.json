@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "930156239352",
+    "project_id": "retrouvetout-c92ba",
+    "storage_bucket": "retrouvetout-c92ba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:930156239352:android:be269fef608afbf7861e0d",
+        "android_client_info": {
+          "package_name": "com.example.retrouve_tout"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUozxfn7G4M6fTYk8OcsLAB9cKdtcVc28"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
