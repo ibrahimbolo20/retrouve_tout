@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
     measurementId: 'G-FB9ZLCV1KB',
   );
+
 }

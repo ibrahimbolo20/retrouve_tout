@@ -1,5 +1,17 @@
-build/ 
-.dart_tool/ 
-.idea/ 
-.vscode/ 
-*.iml 
+# Dossiers générés par Flutter et Android
+build/
+.dart_tool/
+
+# Fichiers de configuration IDE
+.idea/
+.vscode/
+*.iml
+
+# Fichiers locaux et logs
+android/local.properties
+*.log
+
+# Artefacts indésirables
+Nothing
+git
+hint
