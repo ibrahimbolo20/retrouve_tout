@@ -16,7 +16,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _pages = [
     HomeScreen(),
     SearchScreen(),
-    Container(), // Placeholder pour le bouton "+"
+    Container(), // Placeholder for central "+"
     NotificationsScreen(),
     ProfileScreen(),
   ];
@@ -34,16 +34,16 @@ class _MainNavigationState extends State<MainNavigation> {
   void _showAddModal() {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Wrap(
           children: [
             ListTile(
-              leading: Icon(Icons.report_problem, color: Colors.orange),
-              title: Text("Signaler un objet perdu"),
+              leading: const Icon(Icons.report_problem, color: Colors.orange),
+              title: const Text("Signaler un objet perdu"),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context,
@@ -51,8 +51,8 @@ class _MainNavigationState extends State<MainNavigation> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.add_box, color: Colors.green),
-              title: Text("Ajouter un objet trouvé"),
+              leading: const Icon(Icons.add_box, color: Colors.green),
+              title: const Text("Ajouter un objet trouvé"),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context,
@@ -72,29 +72,76 @@ class _MainNavigationState extends State<MainNavigation> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Rechercher'),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: EdgeInsets.all(8),
+      bottomNavigationBar: _buildCustomNavBar(),
+    );
+  }
+
+  Widget _buildCustomNavBar() {
+    return Container(
+      color: Colors.white,
+      height: 70,
+      child: Stack(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home, "Accueil", _selectedIndex == 0, () => _onItemTapped(0)),
+              _buildNavItem(Icons.search, "Rechercher", _selectedIndex == 1, () => _onItemTapped(1)),
+              const SizedBox(width: 60), // espace bouton +
+              _buildNavItem(Icons.notifications, "Notifications", _selectedIndex == 3, () => _onItemTapped(3)),
+              _buildNavItem(Icons.person, "Profil", _selectedIndex == 4, () => _onItemTapped(4)),
+            ],
+          ),
+          // Bouton central +
+          Center(
+            child: Container(
+              height: 60,
+              width: 60,
               decoration: BoxDecoration(
                 color: Colors.orange,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withOpacity(0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  )
+                ],
               ),
-              child: Icon(Icons.add, color: Colors.white),
+              child: IconButton(
+                icon: const Icon(Icons.add, color: Colors.white, size: 32),
+                onPressed: () => _onItemTapped(2),
+              ),
             ),
-            label: '',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, bool active, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: active ? Colors.orange : Colors.grey,
+              size: 26,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: active ? Colors.orange : Colors.grey,
+                fontWeight: active ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
