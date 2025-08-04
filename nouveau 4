@@ -1,5 +1,0 @@
-* text=auto eol=lf
-linux/flutter/* text eol=lf
-macos/Flutter/* text eol=lf
-windows/flutter/* text eol=lf
-pubspec.lock text eol=lf
