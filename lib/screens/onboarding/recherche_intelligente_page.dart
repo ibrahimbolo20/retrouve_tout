@@ -29,24 +29,24 @@ class RechercheIntelligentePage extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF7F8C8D),
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size(40, 28),
-                          ),
-                          child: const Text(
-                            'Passer',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF7F8C8D),
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
+                        // TextButton(
+                        //   onPressed: () {
+                        //     Navigator.pop(context);
+                        //   },
+                        //   style: TextButton.styleFrom(
+                        //     foregroundColor: const Color(0xFF7F8C8D),
+                        //     padding: EdgeInsets.zero,
+                        //     minimumSize: Size(40, 28),
+                        //   ),
+                        //   child: const Text(
+                        //     'Passer',
+                        //     style: TextStyle(
+                        //       fontSize: 13,
+                        //       color: Color(0xFF7F8C8D),
+                        //       fontWeight: FontWeight.w400,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

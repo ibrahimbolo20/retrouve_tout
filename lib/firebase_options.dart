@@ -41,49 +41,47 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCTUJNMdaDOWdlj-LDMSkS7Lm5a2fRG1EA',
-    appId: '1:930156239352:web:68457e4a7491b176861e0d',
-    messagingSenderId: '930156239352',
-    projectId: 'retrouvetout-c92ba',
-    authDomain: 'retrouvetout-c92ba.firebaseapp.com',
-    storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
-    measurementId: 'G-G55LN7FVKH',
+    apiKey: 'AIzaSyAuv0muPqCDJdIQrfoHnjjNqiTYsZhmYiw',
+    appId: '1:430371129269:web:c5c7e1b104bb40a5a7fbfc',
+    messagingSenderId: '430371129269',
+    projectId: 'retrouvetout-6b210',
+    authDomain: 'retrouvetout-6b210.firebaseapp.com',
+    storageBucket: 'retrouvetout-6b210.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCUozxfn7G4M6fTYk8OcsLAB9cKdtcVc28',
-    appId: '1:930156239352:android:be269fef608afbf7861e0d',
-    messagingSenderId: '930156239352',
-    projectId: 'retrouvetout-c92ba',
-    storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
+    apiKey: 'AIzaSyCgFpHzWKHhf07I3LvsXxqlV17HYcmdqcw',
+    appId: '1:430371129269:android:204d7d99fa83ac4ba7fbfc',
+    messagingSenderId: '430371129269',
+    projectId: 'retrouvetout-6b210',
+    storageBucket: 'retrouvetout-6b210.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCWBitkIuFs9I7RzjDdTRczF6f-nbGQr5g',
-    appId: '1:930156239352:ios:48e4e2001e1170c2861e0d',
-    messagingSenderId: '930156239352',
-    projectId: 'retrouvetout-c92ba',
-    storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
+    apiKey: 'AIzaSyCtUXeHFJNDTdKG7WOs0RhtchnaRPO85jU',
+    appId: '1:430371129269:ios:33f9c66637dad735a7fbfc',
+    messagingSenderId: '430371129269',
+    projectId: 'retrouvetout-6b210',
+    storageBucket: 'retrouvetout-6b210.firebasestorage.app',
     iosBundleId: 'com.example.retrouveTout',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCWBitkIuFs9I7RzjDdTRczF6f-nbGQr5g',
-    appId: '1:930156239352:ios:48e4e2001e1170c2861e0d',
-    messagingSenderId: '930156239352',
-    projectId: 'retrouvetout-c92ba',
-    storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
+    apiKey: 'AIzaSyCtUXeHFJNDTdKG7WOs0RhtchnaRPO85jU',
+    appId: '1:430371129269:ios:33f9c66637dad735a7fbfc',
+    messagingSenderId: '430371129269',
+    projectId: 'retrouvetout-6b210',
+    storageBucket: 'retrouvetout-6b210.firebasestorage.app',
     iosBundleId: 'com.example.retrouveTout',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCTUJNMdaDOWdlj-LDMSkS7Lm5a2fRG1EA',
-    appId: '1:930156239352:web:774c013c5bbd0995861e0d',
-    messagingSenderId: '930156239352',
-    projectId: 'retrouvetout-c92ba',
-    authDomain: 'retrouvetout-c92ba.firebaseapp.com',
-    storageBucket: 'retrouvetout-c92ba.firebasestorage.app',
-    measurementId: 'G-FB9ZLCV1KB',
+    apiKey: 'AIzaSyAuv0muPqCDJdIQrfoHnjjNqiTYsZhmYiw',
+    appId: '1:430371129269:web:9c8dbff3c0a9c1aaa7fbfc',
+    messagingSenderId: '430371129269',
+    projectId: 'retrouvetout-6b210',
+    authDomain: 'retrouvetout-6b210.firebaseapp.com',
+    storageBucket: 'retrouvetout-6b210.firebasestorage.app',
   );
 
 }

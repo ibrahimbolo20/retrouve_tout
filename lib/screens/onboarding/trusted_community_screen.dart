@@ -22,16 +22,16 @@ class TrustedCommunityScreen extends StatelessWidget {
             child: Column(
               children: [
                 // Bouton Passer
-                Align(
-                  alignment: Alignment.topRight,
-                  child: TextButton(
-                    onPressed: onNext,
-                    child: const Text(
-                      'Passer',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
-                    ),
-                  ),
-                ),
+                // Align(
+                //   alignment: Alignment.topRight,
+                //   child: TextButton(
+                //     onPressed: onNext,
+                //     child: const Text(
+                //       'Passer',
+                //       style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
+                //     ),
+                //   ),
+                // ),
 
                 const Spacer(flex: 2),
 

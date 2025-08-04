@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:retrouve_tout/screens/main_screen.dart';
+import 'package:retrouve_tout/screens/onboarding/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationScreen extends StatefulWidget {
   const LocationScreen({super.key});
@@ -135,10 +138,18 @@ class _LocationScreenState extends State<LocationScreen> {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {
-                print('Alertes: $_realTimeAlerts, Recherche proximité: $_proximitySearch');
-                // TODO: Implémenter la logique de géolocalisation
-              },
+    onPressed: () async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('onboarding_done', true);
+
+  // Redirige simplement vers la page de connexion
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const LoginScreen(onFinish: () {})),
+  );
+},
+
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2AA6B0),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

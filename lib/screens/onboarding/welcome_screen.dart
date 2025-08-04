@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onNext;
@@ -100,7 +101,11 @@ class WelcomeScreen extends StatelessWidget {
                       width: 280,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: onNext,
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('isFirstLaunch', false);
+                          onNext(); // Navigue ensuite vers l'OnboardingScreen
+},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFFF7F00),
                           shape: RoundedRectangleBorder(
