@@ -4,6 +4,9 @@ import 'package:retrouve_tout/screens/search_screen.dart';
 import 'package:retrouve_tout/screens/add_item_screen.dart';
 import 'package:retrouve_tout/screens/notifications_screen.dart';
 import 'package:retrouve_tout/screens/profile_screen.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
+
+enum AddItemType { lost, found }
 
 class MainNavigation extends StatefulWidget {
   @override
@@ -16,7 +19,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _pages = [
     HomeScreen(),
     SearchScreen(),
-    Container(), // Placeholder for central "+"
+    Container(), // Placeholder (page vide) pour l'index 2
     NotificationsScreen(),
     ProfileScreen(),
   ];
@@ -26,9 +29,11 @@ class _MainNavigationState extends State<MainNavigation> {
       _showAddModal();
       return;
     }
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (_selectedIndex != index) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   void _showAddModal() {
@@ -42,21 +47,29 @@ class _MainNavigationState extends State<MainNavigation> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.report_problem, color: Colors.orange),
+              leading: const Icon(IconlyBold.danger, color: Colors.orange),
               title: const Text("Signaler un objet perdu"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AddItemScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddItemScreen(type: AddItemType.lost.name),
+                  ),
+                );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.add_box, color: Colors.green),
+              leading: const Icon(IconlyBold.plus, color: Colors.green),
               title: const Text("Ajouter un objet trouvé"),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AddItemScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddItemScreen(type: AddItemType.found.name),
+                  ),
+                );
               },
             ),
           ],
@@ -85,11 +98,11 @@ class _MainNavigationState extends State<MainNavigation> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home, "Accueil", _selectedIndex == 0, () => _onItemTapped(0)),
-              _buildNavItem(Icons.search, "Rechercher", _selectedIndex == 1, () => _onItemTapped(1)),
-              const SizedBox(width: 60), // espace bouton +
-              _buildNavItem(Icons.notifications, "Notifications", _selectedIndex == 3, () => _onItemTapped(3)),
-              _buildNavItem(Icons.person, "Profil", _selectedIndex == 4, () => _onItemTapped(4)),
+              _buildNavItem(IconlyBold.home, "Accueil", _selectedIndex == 0, () => _onItemTapped(0)),
+              _buildNavItem(IconlyBold.search, "Rechercher", _selectedIndex == 1, () => _onItemTapped(1)),
+              const SizedBox(width: 60), // Espace réservé au bouton central
+              _buildNavItem(IconlyBold.notification, "Notifications", _selectedIndex == 3, () => _onItemTapped(3)),
+              _buildNavItem(IconlyBold.profile, "Profil", _selectedIndex == 4, () => _onItemTapped(4)),
             ],
           ),
           // Bouton central +
@@ -105,7 +118,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     color: Colors.orange.withOpacity(0.15),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
-                  )
+                  ),
                 ],
               ),
               child: IconButton(
@@ -125,6 +138,7 @@ class _MainNavigationState extends State<MainNavigation> {
         onTap: onTap,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,

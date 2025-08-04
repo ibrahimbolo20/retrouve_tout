@@ -1,241 +1,235 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class EditItemScreen extends StatefulWidget {
   final String itemId;
-  const EditItemScreen({super.key, required this.itemId});
+
+  EditItemScreen({required this.itemId});
 
   @override
-  State<EditItemScreen> createState() => _EditItemScreenState();
+  _EditItemScreenState createState() => _EditItemScreenState();
 }
 
 class _EditItemScreenState extends State<EditItemScreen> {
-  final _nameController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _tagsController = TextEditingController();
-  String _category = 'Électronique';
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _locationController;
+  late TextEditingController _tagsController;
+  late TextEditingController _dateController;
   String _status = 'perdu';
+  String _category = 'Autre';
   File? _imageFile;
-  String? _currentImageUrl;
-  bool _isLoading = false;
-  final _picker = ImagePicker();
+  String? _imageUrl;
+
+  final List<String> _categories = [
+    'Téléphone',
+    'Sac',
+    'Clé',
+    'Vêtement',
+    'Autre'
+  ];
+
+  final picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _loadItemData();
+    _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _locationController = TextEditingController();
+    _tagsController = TextEditingController();
+    _dateController = TextEditingController();
+    _fetchItemData();
   }
 
-  // Charger les données de l'objet depuis Firestore
-  Future<void> _loadItemData() async {
-    final doc = await FirebaseFirestore.instance.collection('items').doc(widget.itemId).get();
-    if (doc.exists) {
-      final data = doc.data()!;
+  Future<void> _fetchItemData() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('items')
+        .doc(widget.itemId)
+        .get();
+
+    final data = doc.data();
+    if (data != null) {
       setState(() {
-        _nameController.text = data['name'] ?? '';
-        _locationController.text = data['location'] ?? '';
+        _titleController.text = data['title'] ?? '';
         _descriptionController.text = data['description'] ?? '';
-        _category = data['category'] ?? 'Électronique';
+        _locationController.text = data['location'] ?? '';
+        _tagsController.text = data['tags'] ?? '';
+        _dateController.text = data['date'] ?? '';
         _status = data['status'] ?? 'perdu';
-        _currentImageUrl = data['imageUrl'] ?? '';
-        _tagsController.text = (data['tags'] as List<dynamic>?)?.join(', ') ?? '';
+        _category = data['category'] ?? 'Autre';
+        _imageUrl = data['imageUrl'];
       });
     }
   }
 
-  // Sélectionner une image
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
-    if (picked != null) {
+    final pickedFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+
+    if (pickedFile != null) {
       setState(() {
-        _imageFile = File(picked.path);
+        _imageFile = File(pickedFile.path);
       });
     }
   }
 
-  // Mettre à jour l'objet
   Future<void> _updateItem() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vous devez être connecté')),
-      );
-      return;
-    }
+    if (_formKey.currentState!.validate()) {
+      String? downloadUrl = _imageUrl;
 
-    if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le nom ne peut pas être vide')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      String? imageUrl = _currentImageUrl;
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref('items/${user.uid}/${widget.itemId}.jpg');
-        await ref.putFile(_imageFile!);
-        imageUrl = await ref.getDownloadURL();
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('items/${widget.itemId}.jpg');
+        await storageRef.putFile(_imageFile!);
+        downloadUrl = await storageRef.getDownloadURL();
       }
 
-      await FirebaseFirestore.instance.collection('items').doc(widget.itemId).update({
-        'name': _nameController.text.trim(),
-        'location': _locationController.text.trim(),
-        'category': _category,
-        'description': _descriptionController.text.trim(),
-        'tags': _tagsController.text.split(',').map((e) => e.trim()).toList(),
-        'imageUrl': imageUrl ?? '',
+      await FirebaseFirestore.instance
+          .collection('items')
+          .doc(widget.itemId)
+          .update({
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'location': _locationController.text,
+        'tags': _tagsController.text,
+        'date': _dateController.text,
         'status': _status,
-        'userId': user.uid,
-        'date': Timestamp.now(),
-        'timestamp': Timestamp.now(),
+        'category': _category,
+        'imageUrl': downloadUrl,
+        'userId': FirebaseAuth.instance.currentUser?.uid,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Objet mis à jour avec succès')),
+        SnackBar(content: Text('Objet mis à jour avec succès')),
       );
       Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la mise à jour : $e')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _deleteItem() async {
+    await FirebaseFirestore.instance
+        .collection('items')
+        .doc(widget.itemId)
+        .delete();
+
+    if (_imageUrl != null) {
+      final storageRef = FirebaseStorage.instance
+          .refFromURL(_imageUrl!);
+      await storageRef.delete();
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Objet supprimé')),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    _tagsController.dispose();
+    _dateController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        title: const Text('Modifier l\'objet'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFFBFC6D1)),
-          onPressed: () => Navigator.pop(context),
+        title: Text('Modifier l\'objet'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: _deleteItem,
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: _imageFile != null
+                    ? Image.file(_imageFile!, height: 200, fit: BoxFit.cover)
+                    : _imageUrl != null
+                        ? Image.network(_imageUrl!, height: 200, fit: BoxFit.cover)
+                        : Container(
+                            height: 200,
+                            color: Colors.grey[300],
+                            child: Icon(Icons.camera_alt, size: 50),
+                          ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(labelText: 'Nom de l\'objet'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Ce champ est requis' : null,
+              ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+              ),
+              TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(labelText: 'Lieu'),
+              ),
+              TextFormField(
+                controller: _tagsController,
+                decoration: InputDecoration(labelText: 'Tags (virgule)'),
+              ),
+              TextFormField(
+                controller: _dateController,
+                decoration: InputDecoration(labelText: 'Date de perte'),
+              ),
+              DropdownButtonFormField<String>(
+                value: _status,
+                decoration: InputDecoration(labelText: 'Statut'),
+                items: ['perdu', 'trouvé']
+                    .map((status) =>
+                        DropdownMenuItem(value: status, child: Text(status)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _status = value!;
+                  });
+                },
+              ),
+              DropdownButtonFormField<String>(
+                value: _category,
+                decoration: InputDecoration(labelText: 'Catégorie'),
+                items: _categories
+                    .map((cat) =>
+                        DropdownMenuItem(value: cat, child: Text(cat)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _category = value!;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _updateItem,
+                child: Text('Mettre à jour'),
+              ),
+            ],
+          ),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      height: 180,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9F9F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE4E7ED)),
-                      ),
-                      child: Center(
-                        child: _imageFile != null
-                            ? Image.file(_imageFile!, fit: BoxFit.cover)
-                            : _currentImageUrl != null && _currentImageUrl!.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: _currentImageUrl!,
-                                    placeholder: (context, url) => const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
-                                    errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.red),
-                                    fit: BoxFit.cover,
-                                  )
-                                : const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Nom de l\'objet',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _locationController,
-                    decoration: InputDecoration(
-                      labelText: 'Lieu',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _category,
-                    decoration: InputDecoration(
-                      labelText: 'Catégorie',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    items: ['Électronique', 'Vêtements', 'Autres']
-                        .map((category) => DropdownMenuItem(value: category, child: Text(category)))
-                        .toList(),
-                    onChanged: (value) => setState(() => _category = value!),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _descriptionController,
-                    decoration: InputDecoration(
-                      labelText: 'Description',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _tagsController,
-                    decoration: InputDecoration(
-                      labelText: 'Tags (séparés par des virgules)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _status,
-                    decoration: InputDecoration(
-                      labelText: 'Statut',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    items: ['perdu', 'trouvé']
-                        .map((status) => DropdownMenuItem(value: status, child: Text(status)))
-                        .toList(),
-                    onChanged: (value) => setState(() => _status = value!),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _updateItem,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF7F00),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Enregistrer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
-    _descriptionController.dispose();
-    _tagsController.dispose();
-    super.dispose();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onNext;
@@ -7,6 +8,9 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('WelcomeScreen build appelé'); // Log pour diagnostiquer les reconstructions
+    bool isTapped = false; // Prévenir les taps multiples
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -19,6 +23,7 @@ class WelcomeScreen extends StatelessWidget {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(), // Optimisation du défilement
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Column(
@@ -28,19 +33,23 @@ class WelcomeScreen extends StatelessWidget {
                     Container(
                       width: 110,
                       height: 110,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Color.fromRGBO(0, 0, 0, 0.1),
                             blurRadius: 20,
-                            offset: const Offset(0, 6),
+                            offset: Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: Center(
-                        child: Icon(Icons.key, color: Color(0xFFFF7F00), size: 50), // Remplace par Image.asset si tu as un logo
+                      child: const Center(
+                        child: Icon(
+                          IconlyLight.bag,
+                          color: Color(0xFFFF7F00),
+                          size: 50,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -86,11 +95,23 @@ class WelcomeScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFeatureItem(Color(0xFFFF7F00), 'Signalez vos objets perdus'),
+                        _buildFeatureItem(
+                          IconlyLight.upload,
+                          const Color(0xFFFF7F00),
+                          'Signalez vos objets perdus',
+                        ),
                         const SizedBox(height: 10),
-                        _buildFeatureItem(Color(0xFF4ECDC4), 'Aidez d\'autres à retrouver leurs affaires'),
+                        _buildFeatureItem(
+                          IconlyLight.heart,
+                          const Color(0xFF4ECDC4),
+                          'Aidez d\'autres à retrouver leurs affaires',
+                        ),
                         const SizedBox(height: 10),
-                        _buildFeatureItem(Color(0xFF2E86AB), 'Communauté de confiance'),
+                        _buildFeatureItem(
+                          IconlyLight.profile,
+                          const Color(0xFF2E86AB),
+                          'Communauté de confiance',
+                        ),
                       ],
                     ),
                     const SizedBox(height: 38),
@@ -100,9 +121,18 @@ class WelcomeScreen extends StatelessWidget {
                       width: 280,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: onNext,
+                        onPressed: () {
+                          if (!isTapped) {
+                            isTapped = true;
+                            print('Bouton Commencer cliqué');
+                            onNext();
+                            Future.delayed(const Duration(milliseconds: 500), () {
+                              isTapped = false;
+                            });
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFFF7F00),
+                          backgroundColor: const Color(0xFFFF7F00),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -140,14 +170,10 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  static Widget _buildFeatureItem(Color color, String text) {
+  static Widget _buildFeatureItem(IconData icon, Color color, String text) {
     return Row(
       children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
+        Icon(icon, color: color, size: 20),
         const SizedBox(width: 10),
         Text(
           text,
