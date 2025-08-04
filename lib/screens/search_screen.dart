@@ -39,6 +39,7 @@ class SearchScreen extends StatelessWidget {
           ],
         ),
       ),
+      // bottomNavigationBar supprimé ici !
     );
   }
 }
