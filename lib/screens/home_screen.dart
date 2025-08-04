@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,11 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Activer la persistance hors ligne pour Firestore
     FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
   }
 
-  // Supprimer un objet de Firestore et Storage
   Future<void> _deleteItem(String itemId, String? imageUrl) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -36,17 +35,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      // Supprimer l'image de Firebase Storage si elle existe
       if (imageUrl != null && imageUrl.isNotEmpty) {
         final ref = FirebaseStorage.instance.refFromURL(imageUrl);
         await ref.delete().catchError((e) {
           if (e.code != 'object-not-found') throw e;
         });
       }
-
-      // Supprimer l'objet de Firestore
       await FirebaseFirestore.instance.collection('items').doc(itemId).delete();
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Objet supprimé avec succès')),
       );
@@ -57,7 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Dialogue de confirmation pour la suppression
   void _showDeleteConfirmationDialog(String itemId, String? imageUrl) {
     showDialog(
       context: context,
@@ -81,7 +75,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Marquer un objet comme retrouvé
   Future<void> _markAsFound(String itemId, String ownerId, String itemName) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -92,13 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      // Mettre à jour le statut de l'objet
       await FirebaseFirestore.instance.collection('items').doc(itemId).update({
         'status': 'trouvé',
         'timestamp': Timestamp.now(),
       });
-
-      // Générer une notification pour le propriétaire
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': ownerId,
         'message': "Votre objet '$itemName' a été marqué comme retrouvé !",
@@ -106,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'read': false,
         'itemId': itemId,
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Objet marqué comme retrouvé')),
       );
@@ -117,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Revendiquer un objet trouvé
   Future<void> _claimItem(String itemId, String ownerId, String itemName) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -128,7 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      // Générer une notification pour le propriétaire
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': ownerId,
         'message': "Quelqu'un a revendiqué votre objet '$itemName' !",
@@ -136,7 +123,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'read': false,
         'itemId': itemId,
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Revendication envoyée au propriétaire')),
       );
@@ -147,7 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Lancer un appel téléphonique
   Future<void> _callOwner(String ownerId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -181,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Envoyer un email au propriétaire
   Future<void> _emailOwner(String ownerId, String itemName) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -214,18 +198,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Partager un objet
   Future<void> _shareItem(String itemName, String location, String status, String? imageUrl) async {
     final text = 'Objet $status : $itemName à $location. Consultez RetrouveTout pour plus de détails !';
     await Share.share(text, subject: 'Objet $status sur RetrouveTout');
   }
 
-  // Lancer une conversation (simulée)
   void _startChat(String ownerId, String itemName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Fonctionnalité de chat à implémenter pour $itemName avec l\'utilisateur $ownerId')),
     );
-    // TODO: Implémenter un système de chat (ex. avec Firestore ou un service tiers comme Stream Chat)
   }
 
   @override
@@ -261,14 +242,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             actions: [
-              const Icon(Icons.location_on, color: Color(0xFFBFC6D1)),
+              const Icon(IconlyLight.location, color: Color(0xFFBFC6D1)),
               const SizedBox(width: 4),
               const Text('Paris, FR', style: TextStyle(color: Color(0xFF8C939E))),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.settings, color: Color(0xFFBFC6D1)),
+                icon: const Icon(IconlyLight.setting, color: Color(0xFFBFC6D1)),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/settings'); // À implémenter
+                  Navigator.pushNamed(context, '/settings');
                 },
                 tooltip: 'Paramètres',
               ),
@@ -288,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Construit la vue principale de l'écran d'accueil
   Widget _buildHomeView() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -313,7 +293,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Carte de motivation
   Widget _buildMotivationCard() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('items').snapshots(),
@@ -336,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const CircleAvatar(
                 backgroundColor: Colors.white,
                 radius: 22,
-                child: Icon(Icons.favorite, color: Color(0xFFFFA657), size: 28),
+                child: Icon(IconlyLight.heart, color: Color(0xFFFFA657), size: 28),
               ),
               const SizedBox(height: 8),
               const Text(
@@ -356,13 +335,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Puces de sélection des catégories
   Widget _buildCategories() {
     List<Map<String, dynamic>> cats = [
-      {'icon': Icons.home, 'label': 'Tout'},
-      {'icon': Icons.devices, 'label': 'Électronique'},
-      {'icon': Icons.checkroom, 'label': 'Vêtements'},
-      {'icon': Icons.wallet, 'label': 'Autres'},
+      {'icon': IconlyLight.home, 'label': 'Tout'},
+      {'icon': IconlyLight.activity, 'label': 'Électronique'},
+      {'icon': IconlyLight.bag, 'label': 'Vêtements'},
+      {'icon': IconlyLight.category, 'label': 'Autres'},
     ];
     return Container(
       width: double.infinity,
@@ -381,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(cats[i]['icon'], size: 16, color: selected ? Colors.white : const Color(0xFF212121)),
+                    Icon(cats[i]['icon'], size: 16, color: selected ? Colors.white : const Color(0xFF2AA6B0)),
                     const SizedBox(width: 2),
                     Flexible(
                       child: Text(
@@ -413,12 +391,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Puces de sélection des onglets (Tout/Perdus/Trouvés)
   Widget _buildTabs() {
     List<Map<String, dynamic>> tabs = [
-      {'label': 'Tout', 'color': const Color(0xFFFF7F00), 'icon': null},
-      {'label': 'Perdus', 'color': const Color(0xFFFFA657), 'icon': Icons.warning_amber_rounded},
-      {'label': 'Trouvés', 'color': const Color(0xFF1FD07C), 'icon': Icons.check_circle_outline},
+      {'label': 'Tout', 'color': const Color(0xFFFF7F00), 'icon': IconlyLight.category},
+      {'label': 'Perdus', 'color': const Color(0xFFFFA657), 'icon': IconlyLight.closeSquare},
+      {'label': 'Trouvés', 'color': const Color(0xFF1FD07C), 'icon': IconlyLight.tickSquare},
     ];
     return Container(
       width: double.infinity,
@@ -433,8 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (tabs[i]['icon'] != null)
-                    Icon(tabs[i]['icon'], size: 16, color: selected ? Colors.white : tabs[i]['color']),
+                  Icon(tabs[i]['icon'], size: 16, color: selected ? Colors.white : tabs[i]['color']),
                   const SizedBox(width: 3),
                   Text(
                     tabs[i]['label'],
@@ -461,7 +437,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Section des villes les plus actives
   Widget _buildActiveCities() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('items').snapshots(),
@@ -503,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.location_on_outlined, color: Color(0xFF2AA6B0)),
+                  Icon(IconlyLight.location, color: Color(0xFF2AA6B0)),
                   SizedBox(width: 7),
                   Text(
                     'Les villes les plus actives',
@@ -542,7 +517,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Section des succès récents
   Widget _buildSuccessSection() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -577,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.emoji_events, color: Color(0xFF2AA6B0)),
+                  Icon(IconlyLight.star, color: Color(0xFF2AA6B0)),
                   SizedBox(width: 7),
                   Text(
                     'Succès récents',
@@ -596,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   data['name'] ?? 'Sans titre',
                   data['location'] ?? 'Lieu inconnu',
                   (data['timestamp'] as Timestamp?)?.toDate().toString().split(' ')[0] ?? 'Date inconnue',
-                  Icons.check_circle,
+                  IconlyLight.tickSquare,
                 );
               }),
             ],
@@ -625,7 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(item, style: const TextStyle(fontWeight: FontWeight.w600)),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFFBFC6D1)),
+                    const Icon(IconlyLight.location, size: 14, color: Color(0xFFBFC6D1)),
                     const SizedBox(width: 4),
                     Text(location, style: const TextStyle(color: Color(0xFF8C939E), fontSize: 12)),
                   ],
@@ -650,17 +624,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Liste principale des objets
   Widget _buildMainCardList() {
     const categoryMap = {
-      0: null, // Tout
+      0: null,
       1: 'Électronique',
       2: 'Vêtements',
       3: 'Autres',
     };
 
     const tabMap = {
-      0: null, // Tout
+      0: null,
       1: 'perdu',
       2: 'trouvé',
     };
@@ -730,7 +703,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Carte pour un objet perdu
   Widget _buildLostItemCard({
     required String itemId,
     required String title,
@@ -779,11 +751,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: imageUrl.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
-                      placeholder: (context, url) => const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
+                      placeholder: (context, url) => const Icon(IconlyLight.image, size: 50, color: Color(0xFFBFC6D1)),
                       errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.red),
                       fit: BoxFit.cover,
                     )
-                  : const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
+                  : const Icon(IconlyLight.image, size: 50, color: Color(0xFFBFC6D1)),
             ),
           ),
           Padding(
@@ -809,7 +781,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.access_time, color: Color(0xFFB3B8C2), size: 15),
+                    const Icon(IconlyLight.timeCircle, color: Color(0xFFB3B8C2), size: 15),
                     const SizedBox(width: 2),
                     Text(
                       time,
@@ -839,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFFBFC6D1)),
+                    const Icon(IconlyLight.location, size: 15, color: Color(0xFFBFC6D1)),
                     const SizedBox(width: 4),
                     Text(
                       location,
@@ -873,18 +845,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.phone, color: Color(0xFF2AA6B0)),
+                      icon: const Icon(IconlyLight.call, color: Color(0xFF2AA6B0)),
                       onPressed: () => _callOwner(userId),
                       tooltip: 'Appeler le propriétaire',
                     ),
                     IconButton(
-                      icon: const Icon(Icons.email, color: Color(0xFF2AA6B0)),
+                      icon: const Icon(IconlyLight.message, color: Color(0xFF2AA6B0)),
                       onPressed: () => _emailOwner(userId, title),
                       tooltip: 'Envoyer un email au propriétaire',
                     ),
                     if (userId == FirebaseAuth.instance.currentUser?.uid)
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Color(0xFF2AA6B0), semanticLabel: 'Plus d\'options'),
+                        icon: const Icon(IconlyLight.moreSquare, color: Color(0xFF2AA6B0), semanticLabel: 'Plus d\'options'),
                         onSelected: (value) {
                           if (value == 'delete') {
                             _showDeleteConfirmationDialog(itemId, imageUrl);
@@ -897,7 +869,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, color: Color(0xFF2AA6B0)),
+                                Icon(IconlyLight.edit, color: Color(0xFF2AA6B0)),
                                 SizedBox(width: 8),
                                 Text('Modifier', style: TextStyle(color: Color(0xFF2AA6B0))),
                               ],
@@ -907,7 +879,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Color(0xFFFF4D4F)),
+                                Icon(IconlyLight.delete, color: Color(0xFFFF4D4F)),
                                 SizedBox(width: 8),
                                 Text('Supprimer', style: TextStyle(color: Color(0xFFFF4D4F))),
                               ],
@@ -923,7 +895,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _startChat(userId, title),
-                        icon: const Icon(Icons.chat, color: Color(0xFF2AA6B0), size: 20),
+                        icon: const Icon(IconlyLight.chat, color: Color(0xFF2AA6B0), size: 20),
                         label: const Text("Chat", style: TextStyle(color: Color(0xFF2AA6B0))),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFE4E7ED)),
@@ -954,7 +926,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Carte pour un objet trouvé
   Widget _buildFoundItemCard({
     required String itemId,
     required String title,
@@ -1002,11 +973,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: imageUrl.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
-                      placeholder: (context, url) => const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
+                      placeholder: (context, url) => const Icon(IconlyLight.image, size: 50, color: Color(0xFFBFC6D1)),
                       errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.red),
                       fit: BoxFit.cover,
                     )
-                  : const Icon(Icons.image, size: 50, color: Color(0xFFBFC6D1)),
+                  : const Icon(IconlyLight.image, size: 50, color: Color(0xFFBFC6D1)),
             ),
           ),
           Padding(
@@ -1032,7 +1003,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.access_time, color: Color(0xFFB3B8C2), size: 15),
+                    const Icon(IconlyLight.timeCircle, color: Color(0xFFB3B8C2), size: 15),
                     const SizedBox(width: 2),
                     Text(
                       time,
@@ -1062,7 +1033,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 15, color: Color(0xFFBFC6D1)),
+                    const Icon(IconlyLight.location, size: 15, color: Color(0xFFBFC6D1)),
                     const SizedBox(width: 4),
                     Text(
                       location,
@@ -1100,7 +1071,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _startChat(userId, title),
-                        icon: const Icon(Icons.chat, color: Color(0xFF2AA6B0), size: 20),
+                        icon: const Icon(IconlyLight.chat, color: Color(0xFF2AA6B0), size: 20),
                         label: const Text("Chat", style: TextStyle(color: Color(0xFF2AA6B0))),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFE4E7ED)),
@@ -1122,7 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     if (userId == FirebaseAuth.instance.currentUser?.uid)
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Color(0xFF2AA6B0), semanticLabel: 'Plus d\'options'),
+                        icon: const Icon(IconlyLight.moreSquare, color: Color(0xFF2AA6B0), semanticLabel: 'Plus d\'options'),
                         onSelected: (value) {
                           if (value == 'delete') {
                             _showDeleteConfirmationDialog(itemId, imageUrl);
@@ -1135,7 +1106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, color: Color(0xFF2AA6B0)),
+                                Icon(IconlyLight.edit, color: Color(0xFF2AA6B0)),
                                 SizedBox(width: 8),
                                 Text('Modifier', style: TextStyle(color: Color(0xFF2AA6B0))),
                               ],
@@ -1145,7 +1116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, color: Color(0xFFFF4D4F)),
+                                Icon(IconlyLight.delete, color: Color(0xFFFF4D4F)),
                                 SizedBox(width: 8),
                                 Text('Supprimer', style: TextStyle(color: Color(0xFFFF4D4F))),
                               ],
@@ -1164,7 +1135,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Construit une puce pour un tag
   static Widget _buildTag(String label) {
     return Container(
       margin: const EdgeInsets.only(right: 6),

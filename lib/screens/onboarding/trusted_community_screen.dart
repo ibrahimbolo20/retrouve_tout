@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class TrustedCommunityScreen extends StatelessWidget {
   final VoidCallback onNext;
@@ -7,126 +8,134 @@ class TrustedCommunityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('TrustedCommunityScreen build appelé');
+    bool isTapped = false;
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFEAF3FA), Colors.white],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      body: Builder(
+        builder: (context) => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFEAF3FA), Colors.white],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                // Bouton Passer
-                // Align(
-                //   alignment: Alignment.topRight,
-                //   child: TextButton(
-                //     onPressed: onNext,
-                //     child: const Text(
-                //       'Passer',
-                //       style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D)),
-                //     ),
-                //   ),
-                // ),
-
-                const Spacer(flex: 2),
-
-                // Illustration
-                Container(
-                  width: 180,
-                  height: 180,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFB3DAF2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16), // Remplacement de l'espace occupé par le bouton "Passer"
+                  const Spacer(flex: 2),
+                  Container(
+                    width: 180,
+                    height: 180,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFB3DAF2),
+                      shape: BoxShape.circle,
+                    ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Positioned(top: 30, child: _circleAvatar(Colors.blue)),
-                        Positioned(bottom: 30, child: _circleAvatar(Colors.orange)),
-                        Positioned(left: 30, child: _circleAvatar(Colors.green)),
-                        Positioned(right: 30, child: _circleAvatar(Colors.orange)),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                // Titre
-                const Text(
-                  'Communauté de confiance',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Rejoignez une communauté bienveillante où chacun s\'entraide pour retrouver les objets perdus. Profils vérifiés et système de notation.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D), height: 1.5),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Fonctionnalités
-                _buildFeature(Icons.people, 'Communauté active et solidaire', Color(0xFF2196F3)),
-                const SizedBox(height: 12),
-                _buildFeature(Icons.verified_user, 'Profils vérifiés et sécurisés', Color(0xFF4CAF50)),
-
-                const Spacer(flex: 2),
-
-                // Indicateurs
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildDot(false),
-                    const SizedBox(width: 6),
-                    _buildDot(true),
-                    const SizedBox(width: 6),
-                    _buildDot(false),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Bouton Suivant
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: onNext,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      elevation: 2,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text(
-                          'Suivant',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                        Positioned(
+                          top: 20,
+                          child: _circleAvatar(const Color(0xFF2196F3)),
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, color: Colors.white),
+                        Positioned(
+                          bottom: 20,
+                          child: _circleAvatar(const Color(0xFFFF9800)),
+                        ),
+                        Positioned(
+                          left: 20,
+                          child: _circleAvatar(const Color(0xFF4CAF50)),
+                        ),
+                        Positioned(
+                          right: 20,
+                          child: _circleAvatar(const Color(0xFFFF9800)),
+                        ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                  const SizedBox(height: 50),
+                  const Text(
+                    'Communauté de confiance',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C3E50),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      'Rejoignez une communauté bienveillante où chacun s\'entraide pour retrouver les objets perdus. Profils vérifiés et système de notation.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Color(0xFF7F8C8D), height: 1.5),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildFeature(
+                    IconlyLight.profile,
+                    'Communauté active et solidaire',
+                    const Color(0xFF2196F3),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFeature(
+                    IconlyLight.shieldDone,
+                    'Profils vérifiés et sécurisés',
+                    const Color(0xFF4CAF50),
+                  ),
+                  const Spacer(flex: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildDot(false),
+                      const SizedBox(width: 6),
+                      _buildDot(true),
+                      const SizedBox(width: 6),
+                      _buildDot(false),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!isTapped) {
+                          isTapped = true;
+                          print('Suivant cliqué');
+                          onNext();
+                          Future.delayed(const Duration(milliseconds: 500), () => isTapped = false);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2196F3),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        elevation: 2,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Suivant',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            IconlyLight.arrowRight,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

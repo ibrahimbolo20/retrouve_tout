@@ -1,12 +1,19 @@
-import 'dart:io';
+import 'dart:io' show File, Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
+import 'dart:typed_data';
+import 'dart:html' as html;
 
 class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({Key? key}) : super(key: key);
+  final String? type; // Paramètre optionnel pour la catégorie initiale
+  const AddItemScreen({Key? key, this.type}) : super(key: key);
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
@@ -16,33 +23,178 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
-  String _category = 'perdu';
+  String _category = 'perdu'; // Pré-rempli avec le type si fourni
   DateTime? _selectedDate;
   File? _imageFile;
+  Uint8List? _webImageBytes;
   bool _isLoading = false;
 
   final picker = ImagePicker();
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.type == 'trouvé') {
+      _category = 'trouvé';
+    }
+  }
+
+  Future<int> _getAndroidVersion() async {
+    if (!Platform.isAndroid) return 0;
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
+    return deviceInfo.version.sdkInt;
+  }
+
   Future<void> _pickImage(ImageSource source) async {
-    final picked = await picker.pickImage(source: source, imageQuality: 50);
-    if (picked != null) {
-      setState(() => _imageFile = File(picked.path));
+    if (kIsWeb) {
+      try {
+        final input = html.FileUploadInputElement()..accept = 'image/*';
+        if (source == ImageSource.camera) {
+          input.attributes['capture'] = 'environment';
+        }
+        input.click();
+        await input.onChange.first;
+        if (input.files!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune image sélectionnée')),
+          );
+          return;
+        }
+        final file = input.files!.first;
+        final reader = html.FileReader();
+        reader.readAsArrayBuffer(file);
+        await reader.onLoad.first;
+        final bytes = reader.result as Uint8List;
+        setState(() {
+          _imageFile = File(file.name);
+          _webImageBytes = bytes;
+          // print('Image web sélectionnée : ${file.name}, bytes : ${_webImageBytes?.length}');
+        });
+      } catch (e) {
+        // print('Erreur lors de la sélection d\'image (web) : $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
+        );
+      }
+      return;
+    }
+
+    PermissionStatus status;
+    if (source == ImageSource.camera) {
+      status = await Permission.camera.request();
+    } else {
+      if (Platform.isAndroid && (await _getAndroidVersion()) >= 33) {
+        status = await Permission.photos.request();
+      } else {
+        status = await Permission.storage.request();
+      }
+    }
+
+    if (status.isGranted) {
+      try {
+        final picked = await picker.pickImage(source: source, imageQuality: 50);
+        if (picked == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune image sélectionnée')),
+          );
+          return;
+        }
+        setState(() {
+          _imageFile = File(picked.path);
+          // print('Image sélectionnée : ${picked.path}');
+          // print('Nouvelle image mobile : $_imageFile');
+        });
+      } catch (e) {
+        // print('Erreur lors de la sélection d\'image : $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
+        );
+      }
+    } else {
+      // print('Permission refusée : ${source == ImageSource.camera ? "caméra" : "galerie"}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Permission refusée pour ${source == ImageSource.camera ? "la caméra" : "la galerie"}')),
+      );
     }
   }
 
   Future<String?> _uploadImage(File image) async {
+    if (kIsWeb && _webImageBytes != null) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        // print('Erreur : Aucun utilisateur connecté');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
+        );
+        return null;
+      }
+      final ref = FirebaseStorage.instance
+          .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      try {
+        await ref.putData(_webImageBytes!);
+        final url = await ref.getDownloadURL();
+        // print('Image téléversée (web) : $url');
+        return url;
+      } catch (e) {
+        // print('Erreur lors du téléversement (web) : $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors du téléversement : $e')),
+        );
+        return null;
+      }
+    }
+
+    if (!await image.exists()) {
+      // print('Erreur : Fichier image non existant');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur : Fichier image non existant')),
+      );
+      return null;
+    }
+    // print('Début du téléversement de l\'image : ${image.path}');
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      // print('Erreur : Aucun utilisateur connecté');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
+      );
+      return null;
+    }
     final ref = FirebaseStorage.instance
-        .ref('items/${user!.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await ref.putFile(image);
-    return await ref.getDownloadURL();
+        .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    try {
+      await ref.putFile(image);
+      final url = await ref.getDownloadURL();
+      // print('Image téléversée : $url');
+      return url;
+    } catch (e) {
+      // print('Erreur lors du téléversement : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du téléversement : $e')),
+      );
+      return null;
+    }
   }
 
   Future<void> _submitItem() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || _nameController.text.isEmpty || _imageFile == null || _selectedDate == null) {
+    final name = _nameController.text.trim();
+
+    // Débogage commenté
+    // print('Validation des champs :');
+    // print('Utilisateur connecté : ${user != null}');
+    // print('Nom : "$name" (vide : ${name.isEmpty})');
+    // print('Image sélectionnée : ${_imageFile != null || _webImageBytes != null}');
+    // print('Date sélectionnée : ${_selectedDate != null}');
+
+    if (user == null || name.isEmpty || (_imageFile == null && _webImageBytes == null) || _selectedDate == null) {
+      String missingFields = '';
+      if (user == null) missingFields += 'Utilisateur non connecté, ';
+      if (name.isEmpty) missingFields += 'Nom, ';
+      if (_imageFile == null && _webImageBytes == null) missingFields += 'Image, ';
+      if (_selectedDate == null) missingFields += 'Date, ';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+        SnackBar(content: Text('Veuillez remplir : ${missingFields.substring(0, missingFields.length - 2)}')),
       );
       return;
     }
@@ -51,36 +203,59 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
     try {
       final imageUrl = await _uploadImage(_imageFile!);
+      if (imageUrl == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
       await FirebaseFirestore.instance.collection('items').add({
-        'name': _nameController.text,
-        'description': _descriptionController.text,
-        'location': _locationController.text,
+        'name': name,
+        'description': _descriptionController.text.trim(),
+        'location': _locationController.text.trim(),
         'category': _category,
         'date': _selectedDate,
         'imageUrl': imageUrl,
         'userId': user.uid,
         'timestamp': FieldValue.serverTimestamp(),
+        'status': _category,
       });
 
+      // print('Objet ajouté avec succès');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Objet ajouté avec succès')),
+      );
       Navigator.pop(context);
     } catch (e) {
+      // print('Erreur lors de l\'ajout de l\'objet : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur : $e')),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    setState(() => _isLoading = false);
   }
 
-  void _selectDate() async {
+  Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDate: DateTime.now(),
     );
-    if (picked != null) setState(() => _selectedDate = picked);
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        // print('Date sélectionnée : $_selectedDate');
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -95,20 +270,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 children: [
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Nom'),
+                    decoration: const InputDecoration(
+                      labelText: 'Nom',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _descriptionController,
-                    decoration: const InputDecoration(labelText: 'Description'),
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
                   ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _locationController,
-                    decoration: const InputDecoration(labelText: 'Lieu'),
+                    decoration: const InputDecoration(
+                      labelText: 'Lieu',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Text('Catégorie :'),
+                      const Text('Catégorie :', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 10),
                       DropdownButton<String>(
                         value: _category,
@@ -120,12 +307,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text(_selectedDate == null
-                          ? 'Aucune date choisie'
-                          : 'Date : ${_selectedDate!.toLocal().toString().split(' ')[0]}'),
+                      Text(
+                        _selectedDate == null
+                            ? 'Aucune date choisie'
+                            : 'Date : ${_selectedDate!.toLocal().toString().split(' ')[0]}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: _selectDate,
@@ -133,30 +323,38 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   _imageFile != null
-                      ? Image.file(_imageFile!, height: 150)
+                      ? kIsWeb
+                          ? const Text('Image sélectionnée (web)')
+                          : Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
                       : const Text('Aucune image sélectionnée'),
+                  const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       TextButton.icon(
                         onPressed: () => _pickImage(ImageSource.camera),
-                        icon: const Icon(Icons.camera),
-                        label: const Text('Caméra'),
+                        icon: const Icon(IconlyLight.camera, color: Color(0xFF2AA6B0), size: 24),
+                        label: const Text('Caméra', style: TextStyle(color: Color(0xFF2AA6B0))),
                       ),
                       TextButton.icon(
                         onPressed: () => _pickImage(ImageSource.gallery),
-                        icon: const Icon(Icons.image),
-                        label: const Text('Galerie'),
+                        icon: const Icon(IconlyLight.image, color: Color(0xFF2AA6B0), size: 24),
+                        label: const Text('Galerie', style: TextStyle(color: Color(0xFF2AA6B0))),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: _submitItem,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Soumettre'),
+                    icon: const Icon(IconlyLight.send, color: Colors.white, size: 24),
+                    label: const Text('Soumettre', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF7F00),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
                 ],
               ),
