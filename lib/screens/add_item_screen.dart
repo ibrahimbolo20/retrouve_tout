@@ -1,4 +1,3 @@
-import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,8 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'dart:io' show File, Platform;
 import 'dart:typed_data';
-import 'dart:html' as html;
 
 class AddItemScreen extends StatefulWidget {
   final String? type; // Paramètre optionnel pour la catégorie initiale
@@ -25,8 +24,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _locationController = TextEditingController();
   String _category = 'perdu'; // Pré-rempli avec le type si fourni
   DateTime? _selectedDate;
-  File? _imageFile;
-  Uint8List? _webImageBytes;
+  File? _imageFile; // Pour Android/iOS
+  Uint8List? _webImageBytes; // Pour le web
   bool _isLoading = false;
 
   final picker = ImagePicker();
@@ -48,30 +47,21 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<void> _pickImage(ImageSource source) async {
     if (kIsWeb) {
       try {
-        final input = html.FileUploadInputElement()..accept = 'image/*';
-        if (source == ImageSource.camera) {
-          input.attributes['capture'] = 'environment';
-        }
-        input.click();
-        await input.onChange.first;
-        if (input.files!.isEmpty) {
+        final picked = await picker.pickImage(source: source, imageQuality: 50);
+        if (picked == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Aucune image sélectionnée')),
           );
           return;
         }
-        final file = input.files!.first;
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(file);
-        await reader.onLoad.first;
-        final bytes = reader.result as Uint8List;
+        final bytes = await picked.readAsBytes();
         setState(() {
-          _imageFile = File(file.name);
           _webImageBytes = bytes;
-          // print('Image web sélectionnée : ${file.name}, bytes : ${_webImageBytes?.length}');
+          _imageFile = null; // Pas de File sur le web
+          print('Image web sélectionnée : ${picked.name}, bytes : ${bytes.length}');
         });
       } catch (e) {
-        // print('Erreur lors de la sélection d\'image (web) : $e');
+        print('Erreur lors de la sélection d\'image (web) : $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
         );
@@ -101,74 +91,53 @@ class _AddItemScreenState extends State<AddItemScreen> {
         }
         setState(() {
           _imageFile = File(picked.path);
-          // print('Image sélectionnée : ${picked.path}');
-          // print('Nouvelle image mobile : $_imageFile');
+          _webImageBytes = null; // Pas de bytes sur mobile
+          print('Image sélectionnée : ${picked.path}');
         });
       } catch (e) {
-        // print('Erreur lors de la sélection d\'image : $e');
+        print('Erreur lors de la sélection d\'image : $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
         );
       }
     } else {
-      // print('Permission refusée : ${source == ImageSource.camera ? "caméra" : "galerie"}');
+      print('Permission refusée : ${source == ImageSource.camera ? "caméra" : "galerie"}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Permission refusée pour ${source == ImageSource.camera ? "la caméra" : "la galerie"}')),
       );
     }
   }
 
-  Future<String?> _uploadImage(File image) async {
-    if (kIsWeb && _webImageBytes != null) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        // print('Erreur : Aucun utilisateur connecté');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
-        );
-        return null;
-      }
-      final ref = FirebaseStorage.instance
-          .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      try {
-        await ref.putData(_webImageBytes!);
-        final url = await ref.getDownloadURL();
-        // print('Image téléversée (web) : $url');
-        return url;
-      } catch (e) {
-        // print('Erreur lors du téléversement (web) : $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors du téléversement : $e')),
-        );
-        return null;
-      }
-    }
-
-    if (!await image.exists()) {
-      // print('Erreur : Fichier image non existant');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur : Fichier image non existant')),
-      );
-      return null;
-    }
-    // print('Début du téléversement de l\'image : ${image.path}');
+  Future<String?> _uploadImage() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // print('Erreur : Aucun utilisateur connecté');
+      print('Erreur : Aucun utilisateur connecté');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
       );
       return null;
     }
+
     final ref = FirebaseStorage.instance
         .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
     try {
-      await ref.putFile(image);
+      if (kIsWeb && _webImageBytes != null) {
+        await ref.putData(_webImageBytes!);
+      } else if (_imageFile != null && await _imageFile!.exists()) {
+        await ref.putFile(_imageFile!);
+      } else {
+        print('Erreur : Aucune image valide à téléverser');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur : Aucune image valide à téléverser')),
+        );
+        return null;
+      }
       final url = await ref.getDownloadURL();
-      // print('Image téléversée : $url');
+      print('Image téléversée : $url');
       return url;
     } catch (e) {
-      // print('Erreur lors du téléversement : $e');
+      print('Erreur lors du téléversement : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du téléversement : $e')),
       );
@@ -180,12 +149,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final user = FirebaseAuth.instance.currentUser;
     final name = _nameController.text.trim();
 
-    // Débogage commenté
-    // print('Validation des champs :');
-    // print('Utilisateur connecté : ${user != null}');
-    // print('Nom : "$name" (vide : ${name.isEmpty})');
-    // print('Image sélectionnée : ${_imageFile != null || _webImageBytes != null}');
-    // print('Date sélectionnée : ${_selectedDate != null}');
+    print('Validation des champs :');
+    print('Utilisateur connecté : ${user != null}');
+    print('Nom : "$name" (vide : ${name.isEmpty})');
+    print('Image sélectionnée : ${_imageFile != null || _webImageBytes != null}');
+    print('Date sélectionnée : ${_selectedDate != null}');
 
     if (user == null || name.isEmpty || (_imageFile == null && _webImageBytes == null) || _selectedDate == null) {
       String missingFields = '';
@@ -202,7 +170,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final imageUrl = await _uploadImage(_imageFile!);
+      final imageUrl = await _uploadImage();
       if (imageUrl == null) {
         setState(() => _isLoading = false);
         return;
@@ -220,13 +188,13 @@ class _AddItemScreenState extends State<AddItemScreen> {
         'status': _category,
       });
 
-      // print('Objet ajouté avec succès');
+      print('Objet ajouté avec succès');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Objet ajouté avec succès')),
       );
       Navigator.pop(context);
     } catch (e) {
-      // print('Erreur lors de l\'ajout de l\'objet : $e');
+      print('Erreur lors de l\'ajout de l\'objet : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
       );
@@ -245,7 +213,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        // print('Date sélectionnée : $_selectedDate');
+        print('Date sélectionnée : $_selectedDate');
       });
     }
   }
@@ -326,7 +294,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   const SizedBox(height: 16),
                   _imageFile != null
                       ? kIsWeb
-                          ? const Text('Image sélectionnée (web)')
+                          ? _webImageBytes != null
+                              ? Image.memory(_webImageBytes!, height: 150, fit: BoxFit.cover)
+                              : const Text('Aucune image sélectionnée')
                           : Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
                       : const Text('Aucune image sélectionnée'),
                   const SizedBox(height: 16),
