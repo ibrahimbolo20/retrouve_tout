@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("kotlin-android")
+    // Flutter Gradle Plugin doit venir après les plugins Android et Kotlin
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -31,6 +31,7 @@ android {
 
     buildTypes {
         release {
+            // Utilisation de la clé debug pour permettre `flutter run --release`
             signingConfig = signingConfigs.getByName("debug")
         }
     }

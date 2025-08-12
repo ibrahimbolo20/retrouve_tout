@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+<<<<<<< HEAD
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:retrouve_tout/screens/onboarding/login_screen.dart';
 import 'package:retrouve_tout/screens/onboarding/splash_screen.dart';
+=======
+import 'package:connectivity_plus/connectivity_plus.dart';
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
 import 'firebase_options.dart';
 
 import 'utils/theme.dart';
@@ -11,15 +15,29 @@ import 'utils/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+<<<<<<< HEAD
     await initializeDateFormatting('fr_FR', null);
 
   
+=======
+  bool hasInternet = await checkInternetConnection();
+  runApp(RetrouveToutApp(hasInternet: hasInternet));
+}
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
 
-  runApp(const RetrouveToutApp());
+Future<bool> checkInternetConnection() async {
+  var connectivityResult = await (Connectivity().checkConnectivity());
+  return connectivityResult != ConnectivityResult.none;
 }
 
 class RetrouveToutApp extends StatelessWidget {
+<<<<<<< HEAD
   const RetrouveToutApp({super.key});
+=======
+  final bool hasInternet;
+
+  const RetrouveToutApp({Key? key, required this.hasInternet}) : super(key: key);
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +45,23 @@ class RetrouveToutApp extends StatelessWidget {
       title: 'RetrouveTout',
       theme: appTheme(),
       debugShowCheckedModeBanner: false,
+<<<<<<< HEAD
       routes: {
         '/auth': (context) => LoginScreen(onFinish: () {}),
         
       },
     
       home: SplashScreen(), // ✅ Lance la séquence complète
+=======
+      home: hasInternet
+          ? OnboardingScreen() // ✅ Lance la séquence complète si connecté
+          : const NoInternetScreen(),
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
     );
   }
 }
 
+<<<<<<< HEAD
 // import 'package:flutter/material.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'firebase_options.dart';
@@ -105,3 +130,50 @@ class RetrouveToutApp extends StatelessWidget {
 //     );
 //   }
 // }
+=======
+class NoInternetScreen extends StatelessWidget {
+  const NoInternetScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.wifi_off, size: 100, color: Colors.red),
+            const SizedBox(height: 20),
+            const Text(
+              'Aucune connexion Internet',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Veuillez vous connecter à Internet pour utiliser l\'application.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                bool hasInternet = await checkInternetConnection();
+                if (hasInternet) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => RetrouveToutApp(hasInternet: true)),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Toujours pas de connexion Internet.')),
+                  );
+                }
+              },
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4

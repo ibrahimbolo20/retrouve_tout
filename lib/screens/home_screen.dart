@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
+    print('Initialisation de HomeScreen : selectedCategory=$selectedCategory, selectedTab=$selectedTab');
   }
 
   Future<void> _deleteItem(String itemId, String? imageUrl) async {
@@ -35,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
+      print('Suppression de l\'objet : itemId=$itemId, imageUrl=$imageUrl');
       if (imageUrl != null && imageUrl.isNotEmpty) {
         final ref = FirebaseStorage.instance.refFromURL(imageUrl);
         await ref.delete().catchError((e) {
@@ -42,10 +44,12 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
       await FirebaseFirestore.instance.collection('items').doc(itemId).delete();
+      print('Objet supprimé avec succès : itemId=$itemId');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Objet supprimé avec succès')),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Erreur lors de la suppression : $e\n$stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la suppression : $e')),
       );
@@ -85,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
+      print('Marquage comme retrouvé : itemId=$itemId, ownerId=$ownerId, itemName=$itemName');
       await FirebaseFirestore.instance.collection('items').doc(itemId).update({
         'status': 'trouvé',
         'timestamp': Timestamp.now(),
@@ -96,10 +101,12 @@ class _HomeScreenState extends State<HomeScreen> {
         'read': false,
         'itemId': itemId,
       });
+      print('Objet marqué comme retrouvé avec succès');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Objet marqué comme retrouvé')),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Erreur lors du marquage comme retrouvé : $e\n$stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
       );
@@ -116,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
+      print('Revendication de l\'objet : itemId=$itemId, ownerId=$ownerId, itemName=$itemName');
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': ownerId,
         'message': "Quelqu'un a revendiqué votre objet '$itemName' !",
@@ -123,10 +131,12 @@ class _HomeScreenState extends State<HomeScreen> {
         'read': false,
         'itemId': itemId,
       });
+      print('Revendication envoyée avec succès');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Revendication envoyée au propriétaire')),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Erreur lors de la revendication : $e\n$stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
       );
@@ -143,23 +153,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
+      print('Tentative d\'appel du propriétaire : ownerId=$ownerId');
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
       final phone = userDoc.data()?['phone'] as String?;
       if (phone != null && phone.isNotEmpty) {
         final uri = Uri.parse('tel:$phone');
         if (await canLaunchUrl(uri)) {
           await launchUrl(uri);
+          print('Appel lancé : $phone');
         } else {
+          print('Impossible de lancer l\'appel');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Impossible de lancer l\'appel')),
           );
         }
       } else {
+        print('Numéro de téléphone non disponible');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Numéro de téléphone non disponible')),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Erreur lors de l\'appel : $e\n$stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
       );
@@ -176,6 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
+      print('Tentative d\'envoi d\'email au propriétaire : ownerId=$ownerId, itemName=$itemName');
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(ownerId).get();
       final email = userDoc.data()?['email'] as String?;
       if (email != null && email.isNotEmpty) {
@@ -186,12 +202,15 @@ class _HomeScreenState extends State<HomeScreen> {
           isHTML: false,
         );
         await FlutterEmailSender.send(emailObj);
+        print('Email envoyé avec succès');
       } else {
+        print('Adresse email non disponible');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Adresse email non disponible')),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Erreur lors de l\'envoi d\'email : $e\n$stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
       );
@@ -199,11 +218,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _shareItem(String itemName, String location, String status, String? imageUrl) async {
+    print('Partage de l\'objet : itemName=$itemName, location=$location, status=$status');
     final text = 'Objet $status : $itemName à $location. Consultez RetrouveTout pour plus de détails !';
     await Share.share(text, subject: 'Objet $status sur RetrouveTout');
   }
 
   void _startChat(String ownerId, String itemName) {
+    print('Démarrage du chat : ownerId=$ownerId, itemName=$itemName');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Fonctionnalité de chat à implémenter pour $itemName avec l\'utilisateur $ownerId')),
     );
@@ -298,6 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: FirebaseFirestore.instance.collection('items').snapshots(),
       builder: (context, snapshot) {
         final count = snapshot.hasData ? snapshot.data!.docs.length : 342;
+        print('Nombre d\'objets dans _buildMotivationCard : $count');
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.only(top: 20, bottom: 14),
@@ -377,7 +399,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 selected: selected,
                 selectedColor: const Color(0xFFFF7F00),
                 backgroundColor: const Color(0xFFF8F9FB),
-                onSelected: (_) => setState(() => selectedCategory = i),
+                onSelected: (_) {
+                  print('Catégorie sélectionnée : ${cats[i]['label']}');
+                  setState(() => selectedCategory = i);
+                },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                   side: selected ? BorderSide.none : const BorderSide(color: Color(0xFFE4E7ED)),
@@ -424,7 +449,10 @@ class _HomeScreenState extends State<HomeScreen> {
               selected: selected,
               selectedColor: tabs[i]['color'],
               backgroundColor: const Color(0xFFF8F9FB),
-              onSelected: (_) => setState(() => selectedTab = i),
+              onSelected: (_) {
+                print('Onglet sélectionné : ${tabs[i]['label']}');
+                setState(() => selectedTab = i);
+              },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
                 side: selected ? BorderSide.none : BorderSide(color: tabs[i]['color']),
@@ -463,6 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'count': '${entry.value.value} objets',
             };
           }).toList();
+          print('Villes actives : $cities');
         }
 
         return Container(
@@ -530,13 +559,16 @@ class _HomeScreenState extends State<HomeScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
+          print('Erreur dans _buildSuccessSection : ${snapshot.error}');
           return const Center(child: Text('Erreur de chargement des succès'));
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          print('Aucun succès récent trouvé');
           return const Center(child: Text('Aucun succès récent'));
         }
 
         final items = snapshot.data!.docs;
+        print('Succès récents : ${items.length} objets trouvés');
 
         return Container(
           width: double.infinity,
@@ -656,13 +688,16 @@ class _HomeScreenState extends State<HomeScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
+          print('Erreur dans _buildMainCardList : ${snapshot.error}');
           return const Center(child: Text('Erreur de chargement des données'));
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          print('Aucun objet trouvé pour category=${categoryMap[selectedCategory]}, status=${tabMap[selectedTab]}');
           return const Center(child: Text('Aucun objet trouvé'));
         }
 
         final items = snapshot.data!.docs;
+        print('Objets chargés : ${items.length}');
 
         return ListView.builder(
           shrinkWrap: true,
@@ -671,6 +706,7 @@ class _HomeScreenState extends State<HomeScreen> {
           itemBuilder: (context, index) {
             final item = items[index].data() as Map<String, dynamic>;
             final itemId = items[index].id;
+            print('Affichage de l\'objet : itemId=$itemId, name=${item['name']}, category=${item['category']}, status=${item['status']}');
             return AnimatedOpacity(
               opacity: 1.0,
               duration: const Duration(milliseconds: 300),
