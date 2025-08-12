@@ -1,14 +1,14 @@
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("kotlin-android")
+    // Flutter Gradle Plugin doit venir après les plugins Android et Kotlin
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.retrouve_tout"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973" // Explicitement défini
+    ndkVersion = "27.0.12077973" // ✅ requis par les plugins Firebase et autres
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.retrouve_tout"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 // ✅ requis par Firebase Auth (au lieu de 21)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -29,6 +29,7 @@ android {
 
     buildTypes {
         release {
+            // Utilisation de la clé debug pour permettre `flutter run --release`
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -36,10 +37,4 @@ android {
 
 flutter {
     source = "../.."
-}
-
-dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-messaging")
 }
