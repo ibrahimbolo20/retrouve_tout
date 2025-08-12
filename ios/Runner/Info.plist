@@ -82,5 +82,12 @@
     <string>Nous avons besoin de votre localisation pour retrouver des objets perdus.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Nous avons besoin de votre localisation pour retrouver des objets perdus.</string>
+    <!-- Ajout pour vérification de connectivité -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string> <!-- Permet la vérification en arrière-plan si nécessaire -->
+    </array>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Utilisé pour vérifier la connectivité en arrière-plan.</string> <!-- Optionnel, selon l'usage -->
 </dict>
 </plist>
