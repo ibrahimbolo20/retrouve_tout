@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onNext;
 
-  const WelcomeScreen({required this.onNext, Key? key}) : super(key: key);
+  const WelcomeScreen({required this.onNext, super.key});
 
   @override
   Widget build(BuildContext context) {

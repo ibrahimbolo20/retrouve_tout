@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 class PreciseLocationScreen extends StatelessWidget {
   final VoidCallback onNext;
 
-  const PreciseLocationScreen({Key? key, required this.onNext}) : super(key: key);
+  const PreciseLocationScreen({super.key, required this.onNext});
 
   @override
   Widget build(BuildContext context) {

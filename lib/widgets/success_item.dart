@@ -6,7 +6,7 @@ class SuccessItem extends StatelessWidget {
   final String time;
   final String status;
 
-  SuccessItem({required this.item, required this.location, required this.time, required this.status});
+  const SuccessItem({super.key, required this.item, required this.location, required this.time, required this.status});
 
   @override
   Widget build(BuildContext context) {

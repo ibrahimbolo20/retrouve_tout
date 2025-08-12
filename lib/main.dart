@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:retrouve_tout/screens/onboarding/login_screen.dart';
 import 'package:retrouve_tout/screens/onboarding/splash_screen.dart';
 import 'firebase_options.dart';
+
 import 'utils/theme.dart';
 // import 'screens/onboarding/onboarding_screen.dart'; // ✅ Import du container Onboarding
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await initializeDateFormatting('fr_FR', null);
+
+  
 
   runApp(const RetrouveToutApp());
 }
 
 class RetrouveToutApp extends StatelessWidget {
-  const RetrouveToutApp({Key? key}) : super(key: key);
+  const RetrouveToutApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +27,11 @@ class RetrouveToutApp extends StatelessWidget {
       title: 'RetrouveTout',
       theme: appTheme(),
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/auth': (context) => LoginScreen(onFinish: () {}),
+        
+      },
+    
       home: SplashScreen(), // ✅ Lance la séquence complète
     );
   }

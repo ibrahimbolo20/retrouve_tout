@@ -4,7 +4,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 class TrustedCommunityScreen extends StatelessWidget {
   final VoidCallback onNext;
 
-  const TrustedCommunityScreen({Key? key, required this.onNext}) : super(key: key);
+  const TrustedCommunityScreen({super.key, required this.onNext});
 
   @override
   Widget build(BuildContext context) {

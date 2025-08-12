@@ -6,7 +6,7 @@ import 'recherche_intelligente_page.dart';
 import 'trusted_community_screen.dart';
 import 'precise_location_screen.dart';
 import 'login_screen.dart';
-import '../main_navigation.dart';
+
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

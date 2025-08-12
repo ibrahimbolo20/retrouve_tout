@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NextOnboardingScreen extends StatelessWidget {
-  const NextOnboardingScreen({Key? key}) : super(key: key);
+  const NextOnboardingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

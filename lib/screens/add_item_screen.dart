@@ -1,19 +1,17 @@
-import 'dart:io' show File, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
+import '../utils/image_picker_helper.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'dart:typed_data';
-import 'dart:html' as html;
 
 class AddItemScreen extends StatefulWidget {
   final String? type; // Paramètre optionnel pour la catégorie initiale
-  const AddItemScreen({Key? key, this.type}) : super(key: key);
+  const AddItemScreen({super.key, this.type});
 
   @override
   State<AddItemScreen> createState() => _AddItemScreenState();
@@ -39,84 +37,47 @@ class _AddItemScreenState extends State<AddItemScreen> {
     }
   }
 
-  Future<int> _getAndroidVersion() async {
-    if (!Platform.isAndroid) return 0;
-    final deviceInfo = await DeviceInfoPlugin().androidInfo;
-    return deviceInfo.version.sdkInt;
-  }
+  // Future<int> _getAndroidVersion() async {
+  //   if (!Platform.isAndroid) return 0;
+  //   final deviceInfo = await DeviceInfoPlugin().androidInfo;
+  //   return deviceInfo.version.sdkInt;
+  // }
 
   Future<void> _pickImage(ImageSource source) async {
-    if (kIsWeb) {
-      try {
-        final input = html.FileUploadInputElement()..accept = 'image/*';
-        if (source == ImageSource.camera) {
-          input.attributes['capture'] = 'environment';
-        }
-        input.click();
-        await input.onChange.first;
-        if (input.files!.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Aucune image sélectionnée')),
-          );
-          return;
-        }
-        final file = input.files!.first;
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(file);
-        await reader.onLoad.first;
-        final bytes = reader.result as Uint8List;
-        setState(() {
-          _imageFile = File(file.name);
-          _webImageBytes = bytes;
-          // print('Image web sélectionnée : ${file.name}, bytes : ${_webImageBytes?.length}');
-        });
-      } catch (e) {
-        // print('Erreur lors de la sélection d\'image (web) : $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
-        );
-      }
-      return;
-    }
+    final result = await pickImage(context, source); // ✅ une seule fonction
 
-    PermissionStatus status;
-    if (source == ImageSource.camera) {
-      status = await Permission.camera.request();
-    } else {
-      if (Platform.isAndroid && (await _getAndroidVersion()) >= 33) {
-        status = await Permission.photos.request();
-      } else {
-        status = await Permission.storage.request();
-      }
-    }
-
-    if (status.isGranted) {
-      try {
-        final picked = await picker.pickImage(source: source, imageQuality: 50);
-        if (picked == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Aucune image sélectionnée')),
-          );
-          return;
+    if (result != null) {
+      setState(() {
+        if (result is Map<String, dynamic>) {
+          // Web
+          _webImageBytes = result['bytes'];
+          _imageFile = null;
+        } else {
+          // Mobile
+          _imageFile = result;
+          _webImageBytes = null;
         }
-        setState(() {
-          _imageFile = File(picked.path);
-          // print('Image sélectionnée : ${picked.path}');
-          // print('Nouvelle image mobile : $_imageFile');
-        });
-      } catch (e) {
-        // print('Erreur lors de la sélection d\'image : $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la sélection d\'image : $e')),
-        );
-      }
+      });
     } else {
-      // print('Permission refusée : ${source == ImageSource.camera ? "caméra" : "galerie"}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permission refusée pour ${source == ImageSource.camera ? "la caméra" : "la galerie"}')),
+        const SnackBar(content: Text('Aucune image sélectionnée')),
       );
     }
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     body: Center(
+  //       child: ElevatedButton(
+  //         onPressed: () => _pickImage(ImageSource.gallery),
+  //         child: const Text("Choisir une image"),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
 
   Future<String?> _uploadImage(File image) async {
     if (kIsWeb && _webImageBytes != null) {

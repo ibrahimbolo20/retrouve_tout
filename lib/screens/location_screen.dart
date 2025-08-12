@@ -145,7 +145,7 @@ class _LocationScreenState extends State<LocationScreen> {
   // Redirige simplement vers la page de connexion
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (_) => const LoginScreen(onFinish: () {})),
+    MaterialPageRoute(builder: (_) => LoginScreen(onFinish: () {})),
   );
 },
 

@@ -33,11 +33,11 @@ tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
-subprojects {
-    afterEvaluate {
-        configure<com.android.build.gradle.BaseExtension> {
-            compileSdkVersion = 34
-            ndkVersion = "27.0.12077973" // Version LTS confirmée
-        }
-    }
-}
+//subprojects {
+  //  afterEvaluate {
+    //    configure<com.android.build.gradle.BaseExtension> {
+      //      compileSdkVersion = 34
+        //    ndkVersion = "27.0.12077973" // Version LTS confirmée
+   //     }
+//}
+//}

@@ -15,7 +15,7 @@ class OnboardingTemplate extends StatelessWidget {
   final bool showRegisterButton;
   final VoidCallback? onRegister;
 
-  OnboardingTemplate({
+  const OnboardingTemplate({super.key, 
     required this.backgroundColor,
     required this.icon,
     required this.title,

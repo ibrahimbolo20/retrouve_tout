@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_iconly/flutter_iconly.dart'; // Ajout pour utiliser les mêmes icônes que LoginScreen
+import 'package:flutter/services.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:flutter_multi_formatter/formatters/phone_input_formatter.dart';
+import 'package:retrouve_tout/screens/main_screen.dart'; // Ajout pour utiliser les mêmes icônes que LoginScreen
 
 class RegisterScreen extends StatefulWidget {
   final VoidCallback onFinish;
-  const RegisterScreen({Key? key, required this.onFinish}) : super(key: key);
+  const RegisterScreen({super.key, required this.onFinish});
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -14,9 +18,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _usernameController=TextEditingController();
+  final _phoneController=TextEditingController();
   final _formKey = GlobalKey<FormState>(); // Clé pour le formulaire
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading= false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -25,6 +32,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _usernameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -48,34 +57,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value != _passwordController.text) return 'Les mots de passe ne correspondent pas';
     return null;
   }
+void _handleRegister() async {
+  if (_formKey.currentState!.validate()) {
+    setState(() => _isLoading = true);
 
-  void _handleRegister() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-        widget.onFinish();
-      } on FirebaseAuthException catch (e) {
-        String message = 'Erreur inconnue';
-        if (e.code == 'weak-password') {
-          message = 'Le mot de passe est trop faible.';
-        } else if (e.code == 'email-already-in-use') {
-          message = 'Un compte existe déjà pour cet email.';
-        } else if (e.code == 'invalid-email') {
-          message = 'L\'email est invalide.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+     final firebaseUser = userCredential.user;
+
+      final userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid);
+      final doc = await userDocRef.get();
+
+      if (!mounted) return;
+
+      if (!doc.exists) {
+        await userDocRef.set({
+          'uid': userCredential.user!.uid,
+          'name': _usernameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'joinDate': Timestamp.now(),
+          'phone': _phoneController.text.trim(),
+          'photoUrl': firebaseUser?.photoURL ??
+              'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+         
+        });
       }
+
+      if (!mounted) return;
+
+      // ✅ Redirection automatique (remplace onFinish)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => MainScreen()), // ou ton écran principal
+      );
+
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      String message = 'Erreur inconnue';
+      if (e.code == 'weak-password') {
+        message = 'Le mot de passe est trop faible.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'Un compte existe déjà pour cet email.';
+      } else if (e.code == 'invalid-email') {
+        message = 'L\'email est invalide.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +139,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 32),
+                  _buildInputField(
+                      controller: _usernameController,
+                      hintText: 'Nom d\'utilisateur',
+                      icon: IconlyLight.profile,
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Veuillez entrer votre nom' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInputField(
+                      controller: _phoneController,
+                      hintText: 'Numéro de téléphone',
+                      icon: IconlyLight.call,
+                   validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un numéro';
+                        }
+                        final phoneRegExp = RegExp(r'^(\+223)?[0-9]{8}$');
+                        if (!phoneRegExp.hasMatch(value)) {
+                          return 'Numéro invalide';
+                        }
+                        return null;
+                      },
+                       inputFormatters: [PhoneInputFormatter()]
+                    ),
+                    const SizedBox(height: 16),
+
+
                   _buildInputField(
                     controller: _emailController,
                     hintText: 'Adresse email',
@@ -134,13 +206,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
+                    child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF7F00)))
+                    :ElevatedButton(
                       onPressed: _handleRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF7F00),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text(
+                      child: 
+                      const Text(
                         'S\'inscrire',
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
@@ -170,11 +245,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool obscureText = false,
     Widget? suffix,
     String? Function(String?)? validator, // Ajout pour la validation
+    List<TextInputFormatter>? inputFormatters, // ✅ AJOUT ICI
+
   }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       validator: validator,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),

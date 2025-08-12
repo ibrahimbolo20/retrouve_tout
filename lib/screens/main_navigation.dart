@@ -9,6 +9,8 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 enum AddItemType { lost, found }
 
 class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
   @override
   _MainNavigationState createState() => _MainNavigationState();
 }

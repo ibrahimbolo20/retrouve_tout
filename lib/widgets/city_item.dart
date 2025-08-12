@@ -5,7 +5,7 @@ class CityItem extends StatelessWidget {
   final String count;
   final String rank;
 
-  CityItem({required this.city, required this.count, required this.rank});
+  const CityItem({super.key, required this.city, required this.count, required this.rank});
 
   @override
   Widget build(BuildContext context) {

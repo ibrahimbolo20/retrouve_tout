@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 class EditItemScreen extends StatefulWidget {
   final String itemId;
 
-  EditItemScreen({required this.itemId});
+  const EditItemScreen({super.key, required this.itemId});
 
   @override
   _EditItemScreenState createState() => _EditItemScreenState();
