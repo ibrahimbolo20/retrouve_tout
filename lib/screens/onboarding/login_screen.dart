@@ -21,6 +21,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -45,6 +53,27 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithEmail() async {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      try {
+        await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => MainScreen()),
+        );
+
+      } on FirebaseAuthException catch (e) {
+        _showError(e.message ?? 'Erreur de connexion');
+      } finally {
+        setState(() => _isLoading = false);
+=======
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     print('Tentative de connexion avec email: ${_emailController.text.trim()}');
@@ -69,6 +98,10 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         default:
           message = e.message ?? 'Erreur de connexion';
+<<<<<<< HEAD
+=======
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
       }
       print('Erreur Firebase: ${e.code} - $message');
       _showError(message);
@@ -81,6 +114,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    final userCredential = await _authService.signInWithGoogle();
+    if (userCredential != null) {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainScreen()));
+    } else {
+      _showError('Échec de la connexion avec Google');
+=======
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
     setState(() => _isLoading = true);
     print('Tentative de connexion avec Google');
     try {
@@ -103,6 +146,10 @@ class _LoginScreenState extends State<LoginScreen> {
       _showError('Échec de la connexion Google: $e');
     } finally {
       setState(() => _isLoading = false);
+<<<<<<< HEAD
+=======
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
     }
   }
 
@@ -118,6 +165,15 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Connexion Facebook réussie');
         widget.onFinish();
       } else {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+        _showError('Connexion Facebook annulée ou échouée');
+      }
+    } catch (e) {
+      _showError('Erreur Facebook: $e');
+=======
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
         print('Connexion Facebook échouée: ${result.status}, ${result.message}');
         _showError('Connexion Facebook annulée ou échouée: ${result.message}');
       }
@@ -126,6 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
       _showError('Échec de la connexion Facebook: $e');
     } finally {
       setState(() => _isLoading = false);
+<<<<<<< HEAD
+=======
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
     }
   }
 
@@ -141,10 +201,20 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Email de réinitialisation envoyé à $email');
       _showError('Email de réinitialisation envoyé');
     } catch (e) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+      _showError('Erreur: $e');
+=======
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
       print('Erreur lors de la réinitialisation: $e');
       _showError('Erreur lors de la réinitialisation: $e');
     } finally {
       setState(() => _isLoading = false);
+<<<<<<< HEAD
+=======
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
     }
   }
 
@@ -199,6 +269,114 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 32),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF7F00),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.search, color: Colors.white, size: 36),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Bon retour !', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text('Connectez-vous pour continuer'),
+                  const SizedBox(height: 24),
+                  _buildInputField(
+                    controller: _emailController,
+                    hintText: 'Adresse email',
+                    icon: IconlyLight.message,
+                    validator: _validateEmail,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildInputField(
+                    controller: _passwordController,
+                    hintText: 'Mot de passe',
+                    icon: IconlyLight.lock,
+                    obscureText: !_isPasswordVisible,
+                    validator: _validatePassword,
+                    suffix: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible ? IconlyLight.show : IconlyLight.hide,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                      onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _resetPassword,
+                      child: const Text('Mot de passe oublié ?', style: TextStyle(color: Color(0xFFFF7F00))),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _signInWithEmail,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF7F00),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Se connecter', style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: const [
+                      Expanded(child: Divider()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('Ou continuer avec'),
+                      ),
+                      Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _socialButton('Google', Colors.white, Colors.black, Icons.g_mobiledata, _signInWithGoogle),
+                  const SizedBox(height: 16),
+                  _socialButton('Facebook', Color(0xFF1877F2), Colors.white, Icons.facebook, _signInWithFacebook),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Pas encore de compte ?'),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => RegisterScreen(onFinish: widget.onFinish)),
+                          );
+                        },
+                        child: const Text(' S\'inscrire',
+                            style: TextStyle(color: Color(0xFFFF7F00), fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: widget.onFinish,
+                    child: const Text('Ignorer pour le moment'),
+                  ),
+                ],
+=======
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -314,6 +492,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+<<<<<<< HEAD
+=======
+>>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+>>>>>>> 99f078cbfcd2995f2e2278d35e89fb0dfbfcdb35
               ),
             ),
     );
