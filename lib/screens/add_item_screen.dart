@@ -1,33 +1,19 @@
-<<<<<<< HEAD
-import 'package:flutter/foundation.dart' show kIsWeb;
-=======
 import 'dart:io';
-import 'package:flutter/foundation.dart';
->>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:io';
-import '../utils/image_picker_helper.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-<<<<<<< HEAD
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_iconly/flutter_iconly.dart';
-import 'dart:typed_data';
-
-class AddItemScreen extends StatefulWidget {
-  final String? type; // Paramètre optionnel pour la catégorie initiale
-=======
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'onboarding/login_screen.dart'; // Chemin correct
-import 'home_screen.dart'; // Assurez-vous que ce fichier existe
+import '../utils/image_picker_helper.dart';
+import 'onboarding/login_screen.dart';
+import 'home_screen.dart';
 
 class AddItemScreen extends StatefulWidget {
   final String? type; // 'perdu' ou 'trouvé'
->>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
   const AddItemScreen({super.key, this.type});
 
   @override
@@ -54,180 +40,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
     if (widget.type != null) {
       _status = widget.type!;
     }
-<<<<<<< HEAD
-  }
-
-  // Future<int> _getAndroidVersion() async {
-  //   if (!Platform.isAndroid) return 0;
-  //   final deviceInfo = await DeviceInfoPlugin().androidInfo;
-  //   return deviceInfo.version.sdkInt;
-  // }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final result = await pickImage(context, source); // ✅ une seule fonction
-
-    if (result != null) {
-      setState(() {
-        if (result is Map<String, dynamic>) {
-          // Web
-          _webImageBytes = result['bytes'];
-          _imageFile = null;
-        } else {
-          // Mobile
-          _imageFile = result;
-          _webImageBytes = null;
-        }
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucune image sélectionnée')),
-      );
-    }
-  }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     body: Center(
-  //       child: ElevatedButton(
-  //         onPressed: () => _pickImage(ImageSource.gallery),
-  //         child: const Text("Choisir une image"),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-
-
-  Future<String?> _uploadImage(File image) async {
-    if (kIsWeb && _webImageBytes != null) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        // print('Erreur : Aucun utilisateur connecté');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
-        );
-        return null;
-      }
-      final ref = FirebaseStorage.instance
-          .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      try {
-        await ref.putData(_webImageBytes!);
-        final url = await ref.getDownloadURL();
-        // print('Image téléversée (web) : $url');
-        return url;
-      } catch (e) {
-        // print('Erreur lors du téléversement (web) : $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors du téléversement : $e')),
-        );
-        return null;
-      }
-    }
-
-    if (!await image.exists()) {
-      // print('Erreur : Fichier image non existant');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur : Fichier image non existant')),
-      );
-      return null;
-    }
-    // print('Début du téléversement de l\'image : ${image.path}');
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      // print('Erreur : Aucun utilisateur connecté');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur : Aucun utilisateur connecté')),
-      );
-      return null;
-    }
-    final ref = FirebaseStorage.instance
-        .ref('items/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    try {
-      await ref.putFile(image);
-      final url = await ref.getDownloadURL();
-      // print('Image téléversée : $url');
-      return url;
-    } catch (e) {
-      // print('Erreur lors du téléversement : $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors du téléversement : $e')),
-      );
-      return null;
-    }
-  }
-
-  Future<void> _submitItem() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final name = _nameController.text.trim();
-
-    // Débogage commenté
-    // print('Validation des champs :');
-    // print('Utilisateur connecté : ${user != null}');
-    // print('Nom : "$name" (vide : ${name.isEmpty})');
-    // print('Image sélectionnée : ${_imageFile != null || _webImageBytes != null}');
-    // print('Date sélectionnée : ${_selectedDate != null}');
-
-    if (user == null || name.isEmpty || (_imageFile == null && _webImageBytes == null) || _selectedDate == null) {
-      String missingFields = '';
-      if (user == null) missingFields += 'Utilisateur non connecté, ';
-      if (name.isEmpty) missingFields += 'Nom, ';
-      if (_imageFile == null && _webImageBytes == null) missingFields += 'Image, ';
-      if (_selectedDate == null) missingFields += 'Date, ';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez remplir : ${missingFields.substring(0, missingFields.length - 2)}')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final imageUrl = await _uploadImage(_imageFile!);
-      if (imageUrl == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      await FirebaseFirestore.instance.collection('items').add({
-        'name': name,
-        'description': _descriptionController.text.trim(),
-        'location': _locationController.text.trim(),
-        'category': _category,
-        'date': _selectedDate,
-        'imageUrl': imageUrl,
-        'userId': user.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': _category,
-      });
-
-      // print('Objet ajouté avec succès');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Objet ajouté avec succès')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      // print('Erreur lors de l\'ajout de l\'objet : $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _selectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-        // print('Date sélectionnée : $_selectedDate');
-=======
     // Vérifier si l'utilisateur est connecté
     if (FirebaseAuth.instance.currentUser == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -245,7 +57,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Veuillez vous connecter pour ajouter un objet')),
         );
->>>>>>> 7a2e7c92a506f56219b7662c68ea3d9c573ab4a4
       });
     }
   }
@@ -261,8 +72,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<int> _getAndroidVersion() async {
     if (!Platform.isAndroid) return 0;
     final info = await DeviceInfoPlugin().androidInfo;
-    // Ignorer l'avertissement si l'analyseur considère sdkInt comme non null
-    // ignore: dead_null_aware_expression
     return info.version.sdkInt ?? 0;
   }
 
