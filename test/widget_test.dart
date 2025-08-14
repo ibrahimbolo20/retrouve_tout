@@ -13,7 +13,7 @@ import 'package:retrouve_tout/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(RetrouveToutApp());
+    await tester.pumpWidget(RetrouveToutApp(hasInternet: true));
 
 
     // Verify that our counter starts at 0.

@@ -3,18 +3,21 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // GoogleSignIn avec constructeur nommé compatible
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: <String>[
-      'email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-    ],
+    scopes: ['email'],
   );
 
   /// Connexion avec Email & Mot de passe
-  Future<UserCredential?> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential?> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       final UserCredential userCredential =
-          await _auth.signInWithEmailAndPassword(email: email, password: password);
+          await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       return userCredential;
     } on FirebaseAuthException catch (e) {
       print('Erreur de connexion : ${e.message}');
@@ -23,10 +26,14 @@ class AuthService {
   }
 
   /// Inscription avec Email & Mot de passe
-  Future<UserCredential?> signUpWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential?> signUpWithEmailAndPassword(
+      String email, String password) async {
     try {
       final UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(email: email, password: password);
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       return userCredential;
     } on FirebaseAuthException catch (e) {
       print('Erreur d\'inscription : ${e.message}');
@@ -38,9 +45,10 @@ class AuthService {
   Future<UserCredential?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null; // L'utilisateur a annulé la connexion
+      if (googleUser == null) return null; // Annulé par l'utilisateur
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -63,5 +71,15 @@ class AuthService {
   /// Obtenir l'utilisateur actuel
   User? getCurrentUser() {
     return _auth.currentUser;
+  }
+
+  /// Réinitialisation du mot de passe
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('Erreur lors de la réinitialisation du mot de passe : $e');
+      rethrow;
+    }
   }
 }

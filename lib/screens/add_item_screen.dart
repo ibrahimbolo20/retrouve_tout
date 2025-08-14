@@ -8,9 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import '../utils/image_picker_helper.dart';
 import 'onboarding/login_screen.dart';
 import 'home_screen.dart';
+import 'dart:typed_data';
+
 
 class AddItemScreen extends StatefulWidget {
   final String? type; // 'perdu' ou 'trouvé'
@@ -72,7 +73,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
   Future<int> _getAndroidVersion() async {
     if (!Platform.isAndroid) return 0;
     final info = await DeviceInfoPlugin().androidInfo;
-    return info.version.sdkInt ?? 0;
+   return info.version.sdkInt;
+
   }
 
   Future<void> _pickImage(ImageSource source) async {
