@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <base href="$FLUTTER_BASE_HREF">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Une application pour retrouver les objets perdus.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="retrouve_tout">
   <meta name="google-signin-client_id" content="VOTRE_CLIENT_ID.apps.googleusercontent.com">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
   <title>retrouve_tout</title>
+  <link rel="manifest" href="manifest.json">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "votre-api-key",
+      authDomain: "votre-auth-domain",
+      projectId: "votre-project-id",
+      storageBucket: "votre-storage-bucket",
+      messagingSenderId: "votre-messaging-sender-id",
+      appId: "votre-app-id"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
   <script>
@@ -24,6 +46,6 @@
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
   </script>
-  <script src="flutter.js" defer></script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
